@@ -1,0 +1,17 @@
+<div class="p-4">
+    <h2>Pilih Dokumentasi</h2>
+    <ul>
+        <li *ngFor="let project of projects">
+            <button (click)="loadDocs(project)">{{ project.name }}</button>
+        </li>
+    </ul>
+
+    <div *ngIf="files.length">
+        <h3 class="mt-4">File Markdown</h3>
+        <ul>
+            <li *ngFor="let file of files">
+                <button (click)="openFile(file)">{{ file.name }}</button>
+            </li>
+        </ul>
+    </div>
+</div>

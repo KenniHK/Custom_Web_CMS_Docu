@@ -1,0 +1,8 @@
+<div class="p-4">
+    <h2>Editor Markdown</h2>
+    <textarea [(ngModel)]="content" rows="20" cols="80"></textarea>
+    <br />
+
+    <h3 class="mt-4">preview</h3>
+    <markdown [data]="content"></markdown>
+</div>
