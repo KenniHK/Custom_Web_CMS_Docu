@@ -1,39 +1,68 @@
-import { Component, OnInit } from '@angular/core';
-import { CmsService } from '../services/cms.service';
-import { Router } from '@angular/router';
+import { Component, effect, signal, computed } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { MarkdownPreviewComponent } from '../markdown-preview/markdown-preview.component';
+import path from 'path';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [
-    CommonModule
-  ],
+  standalone: true,
+  imports: [FormsModule, MarkdownPreviewComponent, CommonModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })
 
-export class DashboardComponent implements OnInit {
-  projects: any[] = [];
-  files: any[] = [];
-  selectedProject: any = null;
+export class DashboardComponent {
+  repo = 'docusaurus_CMS';
+  files = signal<{name: string; path: string}[]>([]);
+  selectedFilePath = signal<string | null>(null);
+  markdownSignal = signal('');
 
-  constructor(private cms: CmsService, private router: Router) {}
-
-  ngOnInit(): void {
-    this.cms.getProjects().subscribe((data: any) => {
-      this.projects = data;
-    })
+  get markdownContent() {
+    return this.markdownSignal();
+  }
+  set markdownContent(val: string) {
+    this.markdownSignal.set(val);
   }
 
-  loadDocs(projects: any) {
-    this.selectedProject = projects;
-    this.cms.getDocs(projects.path).subscribe((data: any) => {
-      this.files = data;
-    })
+  status = signal('');
+
+
+  constructor(private http: HttpClient) {
+    this.loadFiles();
+    effect(() => {
+      if (this.selectedFilePath()) {
+        this.loadFile(this.selectedFilePath()!);
+      }
+    });
   }
 
-  openFile(file: any) {
-    localStorage.setItem('selectedFile', file.path);
-    this.router.navigate(['/edit']);
+  loadFiles() {
+    this.http.get<any[]>(`http://localhost:3001/docs?repo=${this.repo}`).subscribe(data => {
+      this.files.set(data);
+    });
+  }
+
+  loadFile(path: string) {
+    this.http.get(`http://localhost:3001/file?repo=${this.repo}&path=${path}`, { responseType: 'text'})
+    .subscribe(content => {
+      this.markdownSignal.set(content);
+    });
+  }
+
+  saveFile() {
+    const body = {
+      repo: this.repo,
+      path: this.selectedFilePath(),
+      content: this.markdownSignal(),
+      message: 'Update via CMS'
+    }
+
+    this.http.post('http://localhost:3001/file', body).subscribe({
+      next: (res: any) => this.status.set(`Disimpan: ${res.commit}`),
+      error: err => this.status.set(`Error: ${err.message}`)
+    });
+
   }
 }

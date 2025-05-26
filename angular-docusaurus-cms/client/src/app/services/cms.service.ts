@@ -1,27 +1,31 @@
-import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
+
 export class CmsService {
-  baseUrl = 'http://localhost:3001';
+  private apiUrl = 'http://localhost:3001';
 
   constructor(private http: HttpClient) {}
 
-  getProjects() {
-    return this.http.get(`${this.baseUrl}/projects`);
+  getRepos(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/repos`);
   }
 
-  getDocs(path: string) {
-    return this.http.get(`${this.baseUrl}/docs?path=${encodeURIComponent(path)}`);
+  getDocs(repo: string): Observable<any[]> {
+    let params = new HttpParams().set('repo', repo);
+    return this.http.get<any[]>(`${this.apiUrl}/docs`, { params });
   }
 
-  getDoc(filePath: string) {
-    return this.http.get(`${this.baseUrl}/doc?path=${encodeURIComponent(filePath)}`, { responseType: 'text' });
+  getFile(repo: string, path: string): Observable<string> {
+    let params = new HttpParams().set('repo', repo).set('path', path);
+    return this.http.get(`${this.apiUrl}/file`, { params, responseType: 'text' });
   }
 
-  saveDoc(filePath: string, content: string) {
-    return this.http.post(`${this.baseUrl}/doc`, { path: filePath, content});
+  saveFile(repo: string, path: string, content: string, message: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/file`, { repo, path, content, message });
   }
 }

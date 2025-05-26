@@ -1,83 +1,95 @@
 import express from 'express';
 import cors from 'cors';
-import { Octokit } from 'octokit';
+import { Octokit } from '@octokit/rest';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 const TOKEN = process.env.GITHUB_TOKEN;
-const ORG = 'ini_nama_user';
-const REPOS = ['repo1', 'repo2'];
+const ORG = 'KenniHK';
+const REPOS = ['docusaurus_CMS'];
 
-const octokit = new Octokit({ auth: TOKEN});
+const octokit = new Octokit({ auth: TOKEN });
 
 
 app.use(cors());
 app.use(express.json());
 
 
-// Ambil daftar projects
+// Ambil daftar repo
 app.get("/repos", (req,res) => {
-    res.json(REPOS.map(repo => ({ name: })));
+    res.json(REPOS.map(repo => ({ name: repo, path: `${ORG}/${repo}`})));
 });
 
-
-
-
-//##################################################################
-const express = require("express");
-const cors = require("cors");
-const bodyParser = require("body-parser");
-const fs = require("fs-extra");
-const path = require("path");
-
-
-
-
-
-const projectsFile = path.join(__dirname, "projects.json");
-
-
-
-// Ambil daftar file markdown dari 1 project
-app.get("/docs", async (req, res) => {
-    const projectPath = req.query.path;
-    if (!projectPath) return res.status(400).send("Path is required");
-    const docsPath = path.join(projectPath, "docs");
-
-    async function listFiles(dir) {
-        const files = await fs.readdir(dir);
-        return Promise.all(files.map(async file => {
-            const fullPath = path.join(dir, file);
-            const stat = await fs.stat(fullPath);
-            if (stat.isDirectory()) {
-                return { type: "folder", name: file, children: await listFiles(fullPath) };
-            } else if (files.endWith(".md")) {
-                return { type: "file", name: file, path: fullPath };
+// Ambil semua fille markdown yang ada didalam repo (docs dan subfolder)
+async function getMarkdownFiles(owner, repo, path = 'docs') {
+    try {
+        const { data: items } = await octokit.repos.getContent({ owner, repo, path});
+        let results = [];
+        for (const item of items) {
+            if (item.type === 'file' && (item.name.endsWith('.md') || item.name.endsWith('.mdx'))) {
+                results.push({ name: item.name, path: item.path });
+            } else if (item.type === 'dir') {
+                const children = await getMarkdownFiles(owner, repo, item.path);
+                results = results.concat(children);
             }
-        })).then(r => r.filter(Boolean));
+        }
+        return results;
+    } catch (err) {
+        console.error(`Error reading directory ${path} in ${repo}:`, err.message);
+        return [];
     }
+}
 
-
-    const structure = await listFiles(docsPath);
-    res.json(structure);
+// Endpoint ambil semua file .md/ .mdx di docs
+app.get('/docs', async (req, res) => {
+    const { repo } = req.query;
+    try {
+        const markdownFiles = await getMarkdownFiles(ORG, repo);
+        res.json(markdownFiles);
+    } catch (err) {
+        res.status(500).json({ error: 'Gagal ambil file', detail: err.message });
+    }
 });
 
-// Ambil konten file
-app.get("/doc", async (req, res) => {
-    const filePath = reqq.query.path;
-    const content = await fs.readFile(filePath, "utf-8");
-    res.send(content);
+// Ambil isi file markdown tertentu
+app.get('/file', async (req, res) => {
+    const { repo, path } = req.query;
+    try {
+        const file = await octokit.repos.getContent({ owner: ORG, repo, path });
+        const content = Buffer.from(file.data.content, 'base64').toString('utf-8');
+        res.send(content);
+    } catch (err) {
+        res.status(500).json({ error: `Gagal ambil file`, detail: err.mesaage });
+    }
 });
 
 
-// Simpan file 
-app.post("/doc", async (req, res) => {
-    const { path: filePath, content } = req.body;
-    await fs.writeFile(filePath, content);
-    res.send({ status: "success"})
+// Commit Github
+app.post('/file', async (req, res) => {
+    const { repo, path, content, message = 'Update via CMS' } = req.body;
+
+    try {
+        const { data: existingFile } = await octokit.repos.getContent({ owner: ORG, repo, path });
+
+        const update = await octokit.repos.createOrUpdateFileContents ({
+            owner: ORG,
+            repo,
+            path,
+            message,
+            content: Buffer.from(content).toString('base64'),
+            sha: existingFile.sha
+        });
+
+        res.json({ success: true, commit: update.data.commit.sha });
+    } catch (err) {
+        res.status(500).json({ error: 'Gagal commit file', detail: err.message });
+    }
 });
 
 
 app.listen(PORT, () => {
-    console.log(`Backend CMS running on http://localhost:${PORT}`)
+    console.log(`BackEnd running on http://localhost:${PORT}`);
 });
