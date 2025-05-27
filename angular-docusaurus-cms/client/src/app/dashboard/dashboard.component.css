@@ -1,0 +1,58 @@
+/* HTML: <div class="loader"></div> */
+.loader {
+    height: 50px;
+    aspect-ratio: 2;
+    border: 10px solid #000;
+    box-sizing: border-box;
+    background: 
+      radial-gradient(farthest-side,#fff 98%,#0000) left/20px 20px,
+      radial-gradient(farthest-side,#fff 98%,#0000) left/20px 20px,
+      radial-gradient(farthest-side,#fff 98%,#0000) center/20px 20px,
+      radial-gradient(farthest-side,#fff 98%,#0000) right/20px 20px,
+      #000;
+    background-repeat: no-repeat;
+    filter: blur(4px) contrast(10);
+    animation: l14 1s infinite;
+  }
+  @keyframes l14 {
+    100%  {background-position:right,left,center,right}
+  }
+
+.navbar {
+  padding: 1em;
+  background-color: #3471eb;
+}
+
+.flex-card-container {
+  display: flex;
+}
+
+.card-token {
+  width: 75%;
+  margin: 2em;
+  padding: 2em;
+  flex-direction: row;
+  justify-self: center;
+  align-items: center;
+}
+
+.cardHeader {
+  background-color: rgb(241, 241, 241);
+  padding: 5em 3em;
+  border-radius: 2em;
+}
+
+.select {
+  justify-self: center;
+  width: 60%;
+}
+
+.card-repo-file {
+  padding: 3em;
+  width: 75%;
+  justify-self: center;
+}
+
+.navbarIcon {
+  width: 3em;
+}
