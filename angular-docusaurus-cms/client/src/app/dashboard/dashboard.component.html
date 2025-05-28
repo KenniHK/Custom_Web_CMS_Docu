@@ -55,9 +55,30 @@
         <div>
             <h3 class="text-x1 font-semibold">Editor</h3>
             <textarea 
+            #markdownArea
             [(ngModel)]="markdownContent" 
             class="w-full h-[75vh] border p-2 rounded" 
             style="width: 100%; height: 50em;"></textarea>
+
+            <div style="margin-top: 1em; text-align: center;">
+
+              <button (click)="triggerImageInput()" class="btn btn-outline-primary btnMenu">
+                
+                <mat-icon>image</mat-icon>
+              </button>
+              <input 
+              type="file" 
+              #imageInput 
+              style="display: none;" 
+              accept="image/*" 
+              (change)="handleImageUpload($event)"/>
+
+              <button class="btn btn-outline-primary btnMenu">
+                <mat-icon>code</mat-icon>
+              </button>
+            </div>
+            <br><br>
+            
             <button (click)="saveFile()" class="btn btn-outline-secondary">Commit Changes</button>
             <p class="text-sm text-green-600 mt-1">{{ status() }}</p>
         </div>
@@ -70,7 +91,6 @@
       </div>
     </div>
 </div>
-
 
 <div *ngIf="status()">
     <p>status: {{ status() }}</p>
