@@ -63,8 +63,8 @@
             <div style="margin-top: 1em; text-align: center;">
 
               <button (click)="triggerImageInput()" class="btn btn-outline-primary btnMenu">
-                
                 <mat-icon>image</mat-icon>
+                <p>image</p>
               </button>
               <input 
               type="file" 
@@ -73,10 +73,28 @@
               accept="image/*" 
               (change)="handleImageUpload($event)"/>
 
-              <button class="btn btn-outline-primary btnMenu">
+              <button 
+              class="btn btn-outline-primary btnMenu"
+              (click)="openSnippetModal()">
                 <mat-icon>code</mat-icon>
+                <p>code</p>
               </button>
-            </div>
+            
+              <button
+              class="btn btn-outline-primary btnMenu"
+              (click)="openAdmonitionModal()">
+              <mat-icon>info</mat-icon>
+              <p>admonition</p>
+              </button>
+
+              <button
+              class="btn btn-outline-primary btnMenu"
+              (click)="openTabsModal()">
+              <mat-icon>calendar_view_day</mat-icon>
+              <p>Tabs</p>
+              </button>
+        </div>
+
             <br><br>
             
             <button (click)="saveFile()" class="btn btn-outline-secondary">Commit Changes</button>
@@ -91,6 +109,100 @@
       </div>
     </div>
 </div>
+
+<!-- Modal Snippet Code -->
+<div class="modal fade" id="codeSnippetModal" tabindex="-1" aria-labelledby="codeSnippetModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="codeSnippetModalLabel">Insert Code Snippet</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <label>Bahasa Pemrograman :</label>
+        <input type="text" class="form-control" [(ngModel)]="codeLanguage" placeholder="e.g. javascript, python"/>
+        <br>
+        <label>Isi kode :</label>
+        <textarea #markdownTextarea class="form-control" [(ngModel)]="codeContent" rows="6" placeholder="Tulis kode disini"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" (click)="insertCodeSnippet()" data-bs-dismiss="modal">Insert</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Admonition Code -->
+<div class="modal fade" id="admonitionModal" tabindex="-1" aria-labelledby="AdmonitionModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="AdmonitionModalLabel">Insert Code Snippet</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <label>Jenis Admonition :</label>
+        <select class="form-select" [(ngModel)]="admonitionType">
+          <option value="note">Note</option>
+          <option value="tip">Tip</option>
+          <option value="info">Info</option>
+          <option value="warning">Warning</option>
+          <option value="danger">Danger</option>
+        </select>
+        <br>
+        <label>Judul (opsional) :</label>
+        <input type="text" class="form-control" [(ngModel)]="admonitionTitle" placeholder="Judul untuk admonition"/>
+        <br>
+        <label>Isi Admonition :</label>
+        <textarea class="form-control" [(ngModel)]="admonitionContent" rows="5" placeholder="Masukan isi admonition"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" (click)="insertAdmonition()" data-bs-dismiss="modal">Insert</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Tabs Item -->
+<div class="modal fade" id="tabsModal" tabindex="-1" aria-labelledby="tabsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="tabsModalLabel">Insert JSX Tabs</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <div *ngFor="let tab of jsxTabs; let i = index" class="mb-3">
+          <label>Label Tab {{ i + 1 }}</label>
+          <input type="text" class="form-control" [(ngModel)]="tab.label" placeholder="Contoh: Tab 1"/>
+          
+          <label>Value (unik) :</label>
+          <input type="text" class="form-control mb-2" [(ngModel)]="tab.value" placeholder="Unik Value">
+
+          <label>Isi konten :</label>
+          <textarea rows="3" class="form-control" [(ngModel)]="tab.content" placeholder="Isi konten tab disini"></textarea>
+          <hr>
+
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="deafultTab" [value]="i" [(ngModel)]="defaultTabIndex">
+            <label class="form-check-label">Jadikan default</label>
+          </div>
+          <hr>
+          </div>
+
+          <button class="btn btn-sm btn-outline-secondary" (click)="addTab()">Tambah Tab</button>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" (click)="insertJsxTabs()" data-bs-dismiss="modal">Insert Tabs</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
 <div *ngIf="status()">
     <p>status: {{ status() }}</p>

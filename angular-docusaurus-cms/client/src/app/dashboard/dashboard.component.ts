@@ -6,6 +6,8 @@ import { CommonModule } from '@angular/common';
 import { MarkdownPreviewComponent } from '../markdown-preview/markdown-preview.component';
 import Swal from 'sweetalert2';
 import { MatIconModule } from '@angular/material/icon';
+import { text } from 'stream/consumers';
+declare var bootstrap: any;
 
 @Component({
   selector: 'app-dashboard',
@@ -24,9 +26,19 @@ export class DashboardComponent {
   selectedFile = signal('');
   markdownContent = signal('');
   status = signal('');
+  codeLanguage = '';
+  codeContent = '';
+  admonitionType = 'note';
+  admonitionTitle = '';
+  admonitionContent = '';
+  jsxTabs: { label: string; value: string; content: string } [] = [
+    { label: '', value: '', content: ''}
+  ];
+  defaultTabIndex: number = 0;
 
   @ViewChild('imageInput') imageInput!: ElementRef<HTMLInputElement>;
   @ViewChild('markdownArea') markdownArea!: ElementRef<HTMLTextAreaElement>;
+  @ViewChild('markdownTextarea') markdownTextarea!: ElementRef<HTMLTextAreaElement>;
 
   triggerImageInput() {
     this.imageInput.nativeElement.click();
@@ -170,38 +182,98 @@ export class DashboardComponent {
     });
   }
 
-  // onImageSelected(event: Event){
-  //   const file = (event.target as HTMLInputElement)?.files?.[0];
-  //   if (!file) return;
+  openSnippetModal() {
+    const modalEl = document.getElementById('codeSnippetModal');
+    if (modalEl) {
+      const modal = new bootstrap.Modal(modalEl);
+      modal.show();
+    }
+  }
 
-  //   const reader = new FileReader();
-  //   reader.onload = () => {
-  //     const base64Content = (reader.result as string).split(',')[1];
-  //     const imagePath = `static/img/${file.name}`;
-  //     const uploadBody = {
-  //       token: this.token(),
-  //       owner: this.owner(),
-  //       repo: this.selectedRepo(),
-  //       path: imagePath,
-  //       content: base64Content,
-  //       message: `Add image ${file.name}`
-  //     };
+  insertCodeSnippet() {
+    const textarea = this.markdownArea.nativeElement;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
 
-  //     this.http.post('http://localhost:3001/file',uploadBody).subscribe({
-  //       next: () => {
-  //         const imageMarkdown = `![${file.name}](../../static/image/${file.name})`;
-  //         this.markdownContent.set(this.markdownContent() + '\n' + imageMarkdown);
-  //         Swal.fire('Sucess', 'Gambar diunggah dan disisipkan', 'success');
-  //       },
-  //       error: err => {
-  //         Swal.fire('Error', `Upload gagal : ${err.message}`, 'error');
-  //       }
-  //     });
-  //   };
-  //   reader.readAsDataURL(file);
-  // }
+    const before = this.markdownContent().substring(0, start);
+    const after = this.markdownContent().substring(end);
 
-  // toogleImageUpload() {
-  //   this.showImageUpload.set(!this.showImageUpload());
-  // }
+    const snippet =  `\n\`\`\`${this.codeLanguage.trim()}\n${this.codeContent.trim()}\n\`\`\`\n`;
+
+    this.markdownContent.set(before + snippet + after);
+
+    this.codeLanguage = '';
+    this.codeContent = '';
+
+    setTimeout(() => {
+      textarea.focus();
+      textarea.selectionStart = textarea.selectionEnd = start + snippet.length;
+    })
+  }
+
+  openAdmonitionModal() {
+    const modalEl = document.getElementById('admonitionModal');
+    if (modalEl) {
+      const modal = new bootstrap.Modal(modalEl);
+      modal.show();
+    }
+  }
+
+  insertAdmonition() {
+    const textarea = this.markdownArea.nativeElement;
+    const start = textarea.selectionStart;
+    const end =textarea.selectionEnd;
+
+    const before = this.markdownContent().substring(0, start);
+    const after = this.markdownContent().substring(end);
+
+    const titlePart = this.admonitionTitle.trim() ? ` ${this.admonitionTitle.trim()}` : '';
+    const admonitionBlock = `\n:::${this.admonitionType}${titlePart}\n${this.admonitionContent.trim()}\n::::\n`;
+
+    this.markdownContent.set(before + admonitionBlock + after);
+
+    this.admonitionType = 'note';
+    this.admonitionTitle = '';
+    this.admonitionContent = '';
+  }
+
+  openTabsModal() {
+    const modalEl = document.getElementById('tabsModal');
+    if (modalEl) {
+      const modal = new bootstrap.Modal(modalEl);
+      modal.show();
+    }
+  }
+
+  addTab() {
+    this.jsxTabs.push({ label: '', value: '', content: ''});
+  }
+
+  insertJsxTabs() {
+    const textarea = this.markdownArea.nativeElement;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+
+    const before = this.markdownContent().substring(0, start);
+    const after = this.markdownContent().substring(end);
+
+    const tabItems = this.jsxTabs.map((tab, i) => {
+      const defaultAttr = i === this.defaultTabIndex ? ' default' : '';
+      return ` <TabItem value="${tab.value.trim()}" label="${tab.label.trim()}"${defaultAttr}>
+      ${tab.content.trim()}
+      </TabItem>`;
+    })
+    .join('\n');
+
+    const jsxBlock = `import Tabs from '@theme/Tabs'; \nimport TabItem from '@theme/TabItem';\n\n<Tabs>\n${tabItems}\n</Tabs>\n`;
+    
+    this.markdownContent.set(before + jsxBlock + after);
+    this.jsxTabs = [{ label: '', value: '', content: '' }];
+    this.defaultTabIndex = 0;
+
+    setTimeout(() => {
+      textarea.focus();
+      textarea.selectionStart = textarea.selectionEnd = start + jsxBlock.length;
+    })
+  }
 }
