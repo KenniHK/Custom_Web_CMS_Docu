@@ -6,6 +6,7 @@ import { CommonModule } from '@angular/common';
 import { MarkdownPreviewComponent } from '../markdown-preview/markdown-preview.component';
 import Swal from 'sweetalert2';
 import { MatIconModule } from '@angular/material/icon';
+import { catchError, map, of, throwError } from 'rxjs';
 import { text } from 'stream/consumers';
 declare var bootstrap: any;
 
@@ -114,8 +115,8 @@ export class DashboardComponent {
       next: data => this.repoList.set(data),
       error(err: any) {
         Swal.fire({
-          title: 'Gagal ambil repositori',
-          text: (`${err.message}`),
+          title: 'Gagal menghubungkan repositori',
+          text: 'Periksa kembali Token dan Username',
           icon: 'error',
           confirmButtonText: 'Done',
           confirmButtonColor: '#346beb'
@@ -126,26 +127,47 @@ export class DashboardComponent {
   }
 
   loadFiles() {
-    this.http.get<any[]>(`http://localhost:3001/docs?owner=${this.owner()}&repo=${this.selectedRepo()}&token=${this.token()}`).subscribe({
-      next: data => this.filesList.set(data),
-      error(err: any) {
+    this.http.get<any[]>(`http://localhost:3001/docs?owner=${this.owner()}&repo=${this.selectedRepo()}&token=${this.token()}`)
+    .pipe(
+      catchError(err => {
+        console.error(err);
+
         Swal.fire({
-          title: 'Gagal ambil File',
-          text: (`${err.message}`),
+          title: 'Gagal ambil isi repositori',
+          text: `${err.message}`,
           icon: 'error',
           confirmButtonText: 'Done',
           confirmButtonColor: '#346beb'
-        })
-        return
-      },
-    });
+        });
+
+        return of([]);
+      })
+    )
+    .subscribe(data => {
+      this.filesList.set(data);
+    })
   }
 
   loadFileContent() {
-    this.http.get(`http://localhost:3001/file?owner=${this.owner()}&repo=${this.selectedRepo()}&path=${this.selectedFile()}&token=${this.token()}`, { responseType: 'text'}).subscribe({
-      next: content => this.markdownContent.set(content),
-      error: err => this.status.set(`Gagal ambil konten: ${err.message}`)
-    });
+    this.http.get(`http://localhost:3001/file?owner=${this.owner()}&repo=${this.selectedRepo()}&path=${this.selectedFile()}&token=${this.token()}`, { responseType: 'text'})
+    .pipe(
+      catchError(err => {
+        console.error('Gagal ambil isi file', err);
+
+        Swal.fire({
+          title: 'Error',
+          text: err?.error?.message || err.message || 'Gagal mengambil konten file.',
+          icon: 'error',
+          confirmButtonText: 'Done',
+          confirmButtonColor: '#346beb'
+        });
+
+        return of('');
+      })
+    )
+    .subscribe(content => {
+      this.markdownContent.set(content);
+    })
   }
 
   saveFile() {
@@ -275,5 +297,54 @@ export class DashboardComponent {
       textarea.focus();
       textarea.selectionStart = textarea.selectionEnd = start + jsxBlock.length;
     })
+  }
+
+  applyFormatting(type: 'bold' | 'italic' | 'ul' | 'heading1' | 'heading2') {
+    const textarea = this.markdownArea.nativeElement;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+
+    const selected = this.markdownContent().substring(start, end);
+    let formatted = selected;
+
+    switch (type) {
+      case 'bold':
+      formatted = `**${selected}**`;
+      break;
+
+      case 'italic':
+      formatted = `*${selected}*`;
+      break;
+      case 'ul':
+      formatted = selected
+      .split('\n')
+      .map(line => line.startsWith('- ') ? line : `- ${line}`)
+      .join('\n');
+      break;
+
+      case 'heading1':
+      formatted = selected
+      .split('\n')
+      .map(line => `# ${line.replace(/^#+\s*/, '')}`)
+      .join('\n');
+      break;
+
+      case 'heading2':
+      formatted = selected
+      .split('\n')
+      .map(line => `## ${line.replace(/^#+\s*/, '')}`)
+      .join('\n');
+      break;
+    }
+
+    const before = this.markdownContent().substring(0, start);
+    const after = this.markdownContent().substring(end);
+    this.markdownContent.set(before + formatted + after);
+
+    setTimeout(() => {
+      textarea.focus();
+      textarea.selectionStart = start;
+      textarea.selectionEnd = start + formatted.length;
+    });
   }
 }

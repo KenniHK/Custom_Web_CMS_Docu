@@ -44,7 +44,7 @@ async function getMarkdownFiles( octokit, owner, repo, path = 'docs') {
         return results;
     } catch (err) {
         console.error(`Error reading directory ${path} in ${repo}:`, err.message);
-        return [];
+        throw err;
     }
 }
 
