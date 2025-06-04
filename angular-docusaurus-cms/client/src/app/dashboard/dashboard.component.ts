@@ -36,6 +36,8 @@ export class DashboardComponent {
     { label: '', value: '', content: ''}
   ];
   defaultTabIndex: number = 0;
+  filename = '';
+  newMarkdownContent = '';
 
   @ViewChild('imageInput') imageInput!: ElementRef<HTMLInputElement>;
   @ViewChild('markdownArea') markdownArea!: ElementRef<HTMLTextAreaElement>;
@@ -345,6 +347,40 @@ export class DashboardComponent {
       textarea.focus();
       textarea.selectionStart = start;
       textarea.selectionEnd = start + formatted.length;
+    });
+  }
+
+
+
+
+
+  addNewMarkdownFile() {
+    if (!this.filename.endsWith('.md')) {
+      Swal.fire('Error', 'Nama file harus di akhiri dengan .md', 'error');
+      return;
+    }
+
+    const payload = {
+      token: this.token(),
+      owner: this.owner(),
+      repo: this.selectedRepo(),
+      path: this.filename,
+      content: this.newMarkdownContent,
+      message: `Add new file ${this.filename} via cms`
+    };
+
+    console.log('Payload :', payload )
+
+    this.http.post('http://localhost:3001/new-file', payload).subscribe({
+      next: () => {
+        Swal.fire('Berhasil', 'File berhasil ditambahkan ke repositori', 'success');
+        this.filename = '';
+        this.newMarkdownContent = '';
+      },
+      error: (err) => {
+        const detail = err.error?.detail || err.error?.error || 'Terjadi kesalahan';
+        Swal.fire('Gagal', detail, 'error');
+      }
     });
   }
 }

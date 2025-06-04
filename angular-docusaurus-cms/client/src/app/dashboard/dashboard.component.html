@@ -146,6 +146,23 @@
             <br><br>
             
             <button (click)="saveFile()" class="btn btn-outline-secondary">Commit Changes</button>
+
+            <!-- Tambah file markdown -->
+            <div class="p-4 border rounded-x1 shadow space-y-4">
+              <h2 class="text-x1 font-bold">
+                Tambah File Markdown Baru
+              </h2>
+
+              <input type="text" [(ngModel)]="filename" placeholder="Nama file" class="border p-2 w-full rounded"/>
+              <textarea [(ngModel)]="markdownContent" rows="10" placeholder="Isi konten" class="border p-2 w-full rounded"></textarea>
+
+              <button (click)="addNewMarkdownFile()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                Tambahkan File
+              </button>
+            </div>
+
+
+
             <p class="text-sm text-green-600 mt-1">{{ status() }}</p>
         </div>
       </div>

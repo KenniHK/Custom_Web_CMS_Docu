@@ -134,6 +134,44 @@ app.post('/file', async (req, res) => {
     }
 });
 
+//Tambah File 
+app.post('/new-file', async (req,res) => {
+    const { token, owner, repo, path, content, message = 'Add new markdown file' } = req.body;
+
+    if (!token || !owner || !repo || !path || !content) {
+        return res.status(400).json({ error: 'Semua field wajib diisi'});
+    }
+
+    if (typeof content !== 'string'){
+        return res.status(400).json({ error: 'Konten harus berupa string.'})
+    }
+
+    const octokit = new Octokit({ auth: token });
+
+      try {
+        await octokit.repos.getContent({ owner, repo, path });
+        return res.status(400).json({ error: 'File sudah ada di repositori' });
+      } catch (err) {
+        if (err.status !== 404) {
+          return res.status(500).json({ error: 'Gagal cek file', detail: err.message });
+        }
+      }
+
+      try {
+        const encodedContent = Buffer.from(content).toString('base64');
+        const response = await octokit.repos.createOrUpdateFileContents({
+            owner,
+            repo,
+            path,
+            message,
+            content: encodedContent,
+          });
+          res.json({ success: true, commit: response.data.commit.sha });
+      } catch (createErr) {
+        res.status(500).json({ error: 'Gagal membuat file baru', detail: createErr.message });
+      }
+  })
+
 
 app.listen(PORT, () => {
     console.log(`BackEnd running on http://localhost:${PORT}`);
