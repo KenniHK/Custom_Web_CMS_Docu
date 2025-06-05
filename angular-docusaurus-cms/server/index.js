@@ -69,7 +69,7 @@ app.get('/file', async (req, res) => {
         const content = Buffer.from(file.data.content, 'base64').toString('utf-8');
         res.send(content);
     } catch (err) {
-        res.status(500).json({ error: `Gagal ambil file`, detail: err.mesaage });
+        res.status(500).json({ error: `Gagal ambil file`, detail: err.message });
     }
 });
 
@@ -134,7 +134,7 @@ app.post('/file', async (req, res) => {
     }
 });
 
-//Tambah File 
+//Add File markdown 
 app.post('/new-file', async (req,res) => {
     const { token, owner, repo, path, content, message = 'Add new markdown file' } = req.body;
 
@@ -172,6 +172,35 @@ app.post('/new-file', async (req,res) => {
       }
   })
 
+  //delete markdown file
+  app.delete('/delete-file', async (req, res) => {
+    const { token, owner, repo, path } = req.query;
+
+    if (!token || !owner || !repo || !path) {
+        return res.status(400).json({ error: 'Semua parameter (token, owner, repo, path wajib diisi' });
+    }
+
+    const octokit = new Octokit({ auth: token });
+
+    try {
+        const { data: file } = await octokit.repos.getContent({ owner, repo, path});
+
+        const result = await octokit.repos.deleteFile({
+            owner,
+            repo,
+            path,
+            message: `Delete file ${path} via cms`,
+            sha: file.sha
+        });
+
+        res.json({ success: true, commit: result.data.commit.sha });
+    } catch (err) {
+        console.error('Gagal hapus file:', err.message);
+        res.status(500).json({ error: 'Gagal menghapus file', detail: err.message })
+    }
+
+
+  })
 
 app.listen(PORT, () => {
     console.log(`BackEnd running on http://localhost:${PORT}`);

@@ -38,14 +38,71 @@
     </select>
 </div>
 <br><br><br>
-<div style="justify-items: center;" *ngIf="filesList().length > 0">
-    <label><h5>Pilih File Markdown</h5></label><br><br>
-    <select  class="form-select form-select-lg mb-3 select" [(ngModel)]="selectedFile" (change)="loadFileContent()">
-        <option *ngFor="let file of filesList()" [value]="file.path">
-            {{ file.path }}
-        </option>
-    </select>
+
+
+
+            <!-- Hapus file markdown -->
+            <!-- <table>
+              <thead>
+                <tr>
+                  <th>File</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let file of filesList()">
+                  <td>{{ file.name}}</td>
+                  <td>
+                    <button (click)="deleteFile(file.path)">Delete</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table> -->
+
+<div *ngIf="filesList().length > 0" class="table-responsive">
+
+
+<!-- Tambah file markdown -->
+<div class="p-4 border rounded-x1 shadow space-y-4 card">
+  <h2 class="text-x1 font-bold">
+    Tambah File Markdown Baru
+  </h2><br>
+
+  <input type="text" [(ngModel)]="filename" placeholder="Nama file" class="border p-2 w-full rounded"/><br>
+  <textarea [(ngModel)]="newMarkdownContent" rows="10" placeholder="Isi konten" class="border p-2 w-full rounded"></textarea><br>
+
+  <button 
+  (click)="addNewMarkdownFile()" 
+  class="btn btn-outline-light btnMenu">
+  <mat-icon>save</mat-icon>
+  </button>
 </div>
+<br><br>
+
+<label>
+  <h5 style="font-weight: 1000;">Daftar File Markdown :</h5>
+</label>
+<table class="table table-bordered">
+  <thead class="table-light">
+    <tr>
+      <th>Nama File</th>
+      <th>Path</th>
+      <th>Aksi</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let file of filesList()">
+      <td>{{ file.name }}</td>
+      <td>{{ file.path }}</td>
+      <td>
+        <button class="btn btn-sm btn-primary me-2" (click)="editFile(file.path)">Edit</button>
+        <button class="btn btn-sm btn-danger" (click)="deleteFile(file.path)">Delete</button>
+      </td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
 </div>
 </div>
 
@@ -57,6 +114,7 @@
             <textarea 
             #markdownArea
             #markdownTextarea
+            #editSection
             [(ngModel)]="markdownContent" 
             class="w-full h-[75vh] border p-2 rounded" 
             style="width: 100%; height: 50em;"></textarea>
@@ -146,21 +204,6 @@
             <br><br>
             
             <button (click)="saveFile()" class="btn btn-outline-secondary">Commit Changes</button>
-
-            <!-- Tambah file markdown -->
-            <div class="p-4 border rounded-x1 shadow space-y-4">
-              <h2 class="text-x1 font-bold">
-                Tambah File Markdown Baru
-              </h2>
-
-              <input type="text" [(ngModel)]="filename" placeholder="Nama file" class="border p-2 w-full rounded"/>
-              <textarea [(ngModel)]="markdownContent" rows="10" placeholder="Isi konten" class="border p-2 w-full rounded"></textarea>
-
-              <button (click)="addNewMarkdownFile()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                Tambahkan File
-              </button>
-            </div>
-
 
 
             <p class="text-sm text-green-600 mt-1">{{ status() }}</p>

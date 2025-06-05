@@ -43,6 +43,7 @@ export class DashboardComponent {
   @ViewChild('markdownArea') markdownArea!: ElementRef<HTMLTextAreaElement>;
   @ViewChild('markdownTextarea') markdownTextarea!: ElementRef<HTMLTextAreaElement>;
 
+
   triggerImageInput() {
     this.imageInput.nativeElement.click();
   }
@@ -151,24 +152,54 @@ export class DashboardComponent {
   }
 
   loadFileContent() {
-    this.http.get(`http://localhost:3001/file?owner=${this.owner()}&repo=${this.selectedRepo()}&path=${this.selectedFile()}&token=${this.token()}`, { responseType: 'text'})
-    .pipe(
-      catchError(err => {
-        console.error('Gagal ambil isi file', err);
 
-        Swal.fire({
-          title: 'Error',
-          text: err?.error?.message || err.message || 'Gagal mengambil konten file.',
-          icon: 'error',
-          confirmButtonText: 'Done',
-          confirmButtonColor: '#346beb'
-        });
+    const path = this.selectedFile();
 
-        return of('');
-      })
-    )
-    .subscribe(content => {
-      this.markdownContent.set(content);
+    if (!path) return;
+
+    const params = {
+      token: this.token(),
+      owner: this.owner(),
+      repo: this.selectedRepo(),
+      path: path
+    }
+
+    // this.http.get(`http://localhost:3001/file?owner=${this.owner()}&repo=${this.selectedRepo()}&path=${this.selectedFile()}&token=${this.token()}`, { responseType: 'text'})
+    // .pipe(
+    //   catchError(err => {
+    //     console.error('Gagal ambil isi file', err);
+
+    //     Swal.fire({
+    //       title: 'Error',
+    //       text: err?.error?.message || err.message || 'Gagal mengambil konten file.',
+    //       icon: 'error',
+    //       confirmButtonText: 'Done',
+    //       confirmButtonColor: '#346beb'
+    //     });
+
+    //     return of('');
+    //   })
+    // )
+    // .subscribe(content => {
+    //   this.markdownContent.set(content);
+    // })
+
+    this.http.get('http://localhost:3001/file', { 
+      params: params as any, 
+      responseType: 'text' as const 
+    }).subscribe({
+      next: (content) => {
+        this.markdownContent.set(content);
+
+        setTimeout(() => {
+          this.markdownArea?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          this.markdownArea?.nativeElement.focus();
+        }, 200);
+      },
+      error: (err) => {
+        const detail = err.error?.detail || err.error?.error || 'Gagal memuat file';
+        Swal.fire('Gagal', detail, 'error')
+      }
     })
   }
 
@@ -351,7 +382,10 @@ export class DashboardComponent {
   }
 
 
-
+  editFile(path: string) {
+    this.selectedFile.set(path);
+    this.loadFileContent();
+  }
 
 
   addNewMarkdownFile() {
@@ -364,7 +398,7 @@ export class DashboardComponent {
       token: this.token(),
       owner: this.owner(),
       repo: this.selectedRepo(),
-      path: this.filename,
+      path: `docs/${this.filename}`,
       content: this.newMarkdownContent,
       message: `Add new file ${this.filename} via cms`
     };
@@ -376,10 +410,43 @@ export class DashboardComponent {
         Swal.fire('Berhasil', 'File berhasil ditambahkan ke repositori', 'success');
         this.filename = '';
         this.newMarkdownContent = '';
+        this.loadFiles();
       },
       error: (err) => {
         const detail = err.error?.detail || err.error?.error || 'Terjadi kesalahan';
         Swal.fire('Gagal', detail, 'error');
+      }
+    });
+  }
+
+
+  deleteFile(path: string) {
+    const params = {
+      token: this.token(),
+      owner: this.owner(),
+      repo: this.selectedRepo(),
+      path: path
+    };
+
+    Swal.fire({
+      title: 'Warning',
+      text: `File "${path}" akan dihapus permanen dari repository.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Delete',
+      cancelButtonText: 'cancel'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.http.delete('http://localhost:3001/delete-file', { params }).subscribe({
+          next: () => {
+            Swal.fire('Berhasil', 'File berhasil dihapus dari repository', 'success');
+            this.loadFiles();
+          },
+          error: (err) => {
+            const detail = err.error?.detail || err.error?.error || 'Terjadi kesalahan saat menghapus';
+            Swal.fire('Gagal', detail, 'error');;
+          }
+        });
       }
     });
   }
