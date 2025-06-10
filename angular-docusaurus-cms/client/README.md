@@ -1,59 +1,83 @@
-# Client
+# 🧩 Docusaurus CMS - Web-Based Markdown Editor for GitHub Docs
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.0.0.
+CMS berbasis web yang dibuat menggunakan **Angular** dan **Node.js (Express)** untuk mengelola dokumentasi berbasis **Docusaurus** yang tersebar di berbagai repositori GitHub. CMS ini memungkinkan pengguna untuk:
 
-## Development server
+- Menelusuri dan memilih repositori GitHub
+- Melihat dan mengedit file markdown (`.md`)
+- Menambahkan file baru ke folder `docs/`
+- Mengunggah gambar dan menyisipkannya ke markdown
+- Menyisipkan kode, admonition, dan JSX Tabs
+- Menyimpan perubahan langsung ke GitHub (commit)
+- Menghapus file dari repositori
 
-To start a local development server, run:
+---
 
-```bash
-ng serve
-```
+## 🚀 Fitur
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+### 🔍 Navigasi
+- Autentikasi via Personal Access Token (PAT)
+- Input username dan token GitHub
+- Daftar semua repositori milik pengguna
+- Menampilkan file `.md` dari direktori `docs/`
 
-## Code scaffolding
+### 📄 Editor Markdown
+- Editor berbasis `<textarea>` dengan preview
+- Menyisipkan gambar (upload ke backend, dapatkan URL CDN)
+- Menyisipkan block code, admonition, tab JSX
+- Formatting tools: bold, italic, heading, bullet list
+- Scroll otomatis ke editor saat mengedit file
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+### 📁 File Management
+- Tambah file baru ke `docs/`
+- Commit langsung ke GitHub
+- Hapus file dari repositori dengan konfirmasi
+- Menampilkan nama branch & commit ID terakhir (opsional)
 
-```bash
-ng generate component component-name
-```
+---
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## 🛠️ Instalasi
 
-```bash
-ng generate --help
-```
+1. Clone repository 
+2. Setup Backend (Node.js) :
+- Arahkan menuju directory Backend (cd/angular-docusaurus-cms/server)
+- Jalankan "npm install"
+- Jalankan "node index.js"
+- Server backend akan berjalan di port 3001
+3. Setup Frontend (Angular) :
+- Arahkan menuju directory Frontend (cd/angular-docusaurus-cms/client)
+- Jalankan "npm install"
+- Jalankan "ng serve"
+- Frontend akan berjalan pada port 4200
 
-## Building
 
-To build the project run:
+# Cara Penggunaan
 
-```bash
-ng build
-```
+## 🔐 Autentikasi GitHub
+CMS ini menggunakan GitHub Personal Access Token untuk otorisasi akses repositori pribadi dan publik.
+Permission yang dibutuhkan:
+repo (full control of private repositories)
+Buat token dari git/github dengan izin akses untuk membaca dan menulis file kedalam repository ( izinkan semua akses "read & write )
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+*Gunakan token dengan hati-hati. CMS ini tidak menyimpan token yang digunakan*
 
-## Running unit tests
 
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+🧪 Contoh Penggunaan
+1. Masukkan Username dan Personal Access Token yang sudah diberikan akses full untuk menulis dan membaca
+2. Klik Load Repos
+3. Pilih repositori yang ingin di edit → klik Load Files
+4. List file md yang ada dalam repositor akan di load kedalam tabel
+5. User dapat menambahkan file markdown baru melalui field yang di sediakan
+6. Klik tombol edit pada file .md untuk melakukan editing pada file yang dipilih
+7. Edit konten markdown :
+Text Format -> berisi beberapa opsi untuk mengubah format text yang ditampilkan didalam markdown (Bold, Italic, Heading, List)
+Menu -> berisi fitur-fitur docusaurus yang bisa di masukkan kedalam file markdown ( Image, Snippet Code, Admonition, Tabs )
+8. Delete konten markdown yang berada didalam repositori dengan menggunakan tombol delete
+9. Simpan perubahan yang dilakukan dengan tombol Commit Changes -> Commit akan dilakukan langsung ke branch default
 
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+🧱 Teknologi yang Digunakan
+🔹 Angular (Standalone Components)
+🔸 Node.js + Express
+🐙 Octokit (GitHub REST API)
+🍬 SweetAlert2 (popup feedback)
+🧱 Bootstrap (modal)
+✍️ Markdown + JSX Docusaurus

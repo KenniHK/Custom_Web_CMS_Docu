@@ -164,26 +164,6 @@ export class DashboardComponent {
       path: path
     }
 
-    // this.http.get(`http://localhost:3001/file?owner=${this.owner()}&repo=${this.selectedRepo()}&path=${this.selectedFile()}&token=${this.token()}`, { responseType: 'text'})
-    // .pipe(
-    //   catchError(err => {
-    //     console.error('Gagal ambil isi file', err);
-
-    //     Swal.fire({
-    //       title: 'Error',
-    //       text: err?.error?.message || err.message || 'Gagal mengambil konten file.',
-    //       icon: 'error',
-    //       confirmButtonText: 'Done',
-    //       confirmButtonColor: '#346beb'
-    //     });
-
-    //     return of('');
-    //   })
-    // )
-    // .subscribe(content => {
-    //   this.markdownContent.set(content);
-    // })
-
     this.http.get('http://localhost:3001/file', { 
       params: params as any, 
       responseType: 'text' as const 
